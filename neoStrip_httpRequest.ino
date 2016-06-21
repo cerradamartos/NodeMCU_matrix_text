@@ -4,23 +4,21 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPClient.h>
-#include <NeoPixelBus.h>
+#include <Adafruit_NeoPixel.h>
 #define USE_SERIAL Serial
 
-const uint16_t PixelCount = 8; // this example assumes 4 pixels, making it smaller will cause a failure
+const uint16_t PixelCount = 32; // this example assumes 4 pixels, making it smaller will cause a failure
 const uint8_t PixelPin = 2;  // make sure to set this to the correct pin, ignored for Esp8266
 
 const char* ssid = "Be_Maker";
 const char* password = "pulpoparacomer";
-NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> strip(PixelCount, PixelPin);
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(PixelCount, PixelPin, NEO_GRB + NEO_KHZ800);
 int led = 13;
 String payload;
 HTTPClient http;
 
 void setup() {
-  strip.Begin();
-    strip.Show();
-
+   pixels.begin(); // This initializes the NeoPixel library.
     pinMode(led, OUTPUT);
     digitalWrite(led, 0);
     USE_SERIAL.begin(115200);
@@ -67,7 +65,7 @@ void setup() {
 }
 
 void parseStrToColor(String str){
-for(int i=0;i<8; i++){
+for(int i=0;i<32; i++){
   String pixelStr = str.substring(i*6,i*6+6);
    long number = strtol( &pixelStr[0], NULL, 16);
 
@@ -75,9 +73,9 @@ for(int i=0;i<8; i++){
  long r = number >> 16;
  long g = number >> 8 & 0xFF;
  long b = number & 0xFF;
-  strip.SetPixelColor(i, RgbColor(r,g,b));
+  pixels.setPixelColor(i, pixels.Color(r,g,b));
 }
-strip.Show();
+pixels.show();
   
 }
 
@@ -98,7 +96,7 @@ void loop() {
             if(httpCode == HTTP_CODE_OK) {
                 payload = http.getString();
                 for(int i=0 ; i<30; i++){
-                  parseStrToColor(payload.substring(48*i, 48*i+48)); 
+                  parseStrToColor(payload.substring(96*6*i, 96*6*i+96*6)); 
                   //USE_SERIAL.println(payload);
                   if(i<29)delay(30);
               }
